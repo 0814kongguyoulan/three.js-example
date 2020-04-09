@@ -1,0 +1,93 @@
+<html>
+
+<head>
+  <title>My first three.js app</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="../lib/Three.js"></script>
+  <script src="../lib/OrbitControls.js"></script>
+  <script>
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+    var renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0xFFFFFF);
+    var OrbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement)
+
+    document.body.appendChild(renderer.domElement);
+
+    var cube = cubeWithOutline()
+    cube.updateMatrix()
+    cube.updateMatrixWorld()
+    scene.add(cube);
+    // 创建起始点
+    var basicP = new THREE.Vector3(10, 0, 0)
+    getIntersectPoint()
+    camera.position.z = 50;
+    //创建一个带边框的立方体
+    function cubeWithOutline() {
+      let cubeGeo = new THREE.CubeGeometry(2, 20, 15)
+      let material = new THREE.MeshBasicMaterial({
+        color: 0x8d8dcf,
+        transparent: true,
+        opacity: 0.5
+      })
+      let cube = new THREE.Mesh(cubeGeo, material)
+
+      let outLineMtl = new THREE.LineBasicMaterial({
+        color: 0xff666666,
+        linewidth: 1
+      })
+
+      let outlineGeo = new THREE.EdgesGeometry(cubeGeo)
+      let outline = new THREE.LineSegments(outlineGeo, outLineMtl)
+
+      let cubeGroup = new THREE.Group()
+
+      cubeGroup.add(cube)
+      cubeGroup.add(outline)
+      // 立方体向X轴负方向移动
+      cubeGroup.position.setX(-20)
+      return cubeGroup
+    }
+
+    function getIntersectPoint() {
+      let ray = new THREE.Raycaster(basicP, new THREE.Vector3(-1, 0, 0).normalize())
+      let points = ray.intersectObjects(cube.children) //或 let points = ray.intersectObjects(cube,true)
+      let intersectP = points[0].point //取得第一个交点
+      createIntersectLine(intersectP)
+    }
+
+    function createIntersectLine(intersectP) {
+      let lineMtl = new THREE.LineBasicMaterial({
+        color: 0xdf5676,
+        linewidth: 1
+      })
+      let geometry = new THREE.Geometry()
+      geometry.vertices.push(basicP, intersectP)
+      let line = new THREE.Line(geometry, lineMtl)
+      scene.add(line)
+    }
+
+    var animate = function () {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    };
+
+    animate();
+  </script>
+</body>
+
+</html>
